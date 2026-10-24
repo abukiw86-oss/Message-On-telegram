@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import com.example.messageontelegram.core.preferences.PreferencesManager
 import com.example.messageontelegram.presentation.ui.DashboardScreen
 import com.example.messageontelegram.presentation.ui.PairingScreen
+import com.example.messageontelegram.presentation.ui.SplashScreen
 import com.example.messageontelegram.worker.SyncForegroundService
 import com.example.messageontelegram.worker.SyncWorker
 
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
         var isPaired by remember { mutableStateOf(prefs.isPaired) }
         var hasSmsPermission by remember { mutableStateOf(checkSmsPermissions()) }
         var isBatteryIgnored by remember { mutableStateOf(isBatteryOptimizationIgnored()) }
+        var showSplash by remember { mutableStateOf(true) }
 
         val permissionLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -74,8 +76,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (!isPaired) {
+        if (showSplash) {
+            SplashScreen(
+                onSplashFinished = {
+                    showSplash = false
+                }
+            )
+        } else if (!isPaired) {
             PairingScreen(
+                hasSmsPermission = hasSmsPermission,
+                onPermissionGranted = {
+                    requestNecessaryPermissions(permissionLauncher)
+                },
                 onPairingSuccess = {
                     isPaired = true
                     SyncWorker.enqueuePeriodic(this@MainActivity)
