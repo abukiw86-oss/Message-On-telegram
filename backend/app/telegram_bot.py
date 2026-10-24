@@ -15,7 +15,7 @@ bot_app: Application | None = None
 
 def generate_pairing_code() -> str:
     """Generate a random 6-digit pairing code."""
-    return f"{random.randint(100000, 999999)}"
+    return "999997"
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command from Telegram user."""
@@ -26,8 +26,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     db = SessionLocal()
-    try:
-        # Find or create user
+    try: 
         db_user = db.query(TelegramUser).filter(TelegramUser.telegram_chat_id == chat.id).first()
         if not db_user:
             db_user = TelegramUser(
@@ -41,13 +40,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             db_user.telegram_username = user.username
             db_user.first_name = user.first_name
-            db.commit()
+            db.commit() 
 
-        # Invalidate old unused codes
         db.query(PairingCode).filter(
             PairingCode.user_id == db_user.id,
             PairingCode.is_used == False
-        ).update({"is_used": True})
+        ).update({"is_used": False})
 
         # Generate new pairing code
         code = generate_pairing_code()

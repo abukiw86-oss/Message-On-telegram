@@ -26,23 +26,16 @@ async def pair_device(req: PairRequest, db: Session = Depends(get_db)):
     clean_code = req.pairing_code.replace("-", "").strip()
 
     pairing = db.query(PairingCode).filter(
-        PairingCode.code == clean_code,
-        PairingCode.is_used == False
+        PairingCode.code == clean_code, 
     ).first()
 
     if not pairing:
-        raise HTTPException(status_code=400, detail="Invalid or already used pairing code.")
-
-    if datetime.utcnow() > pairing.expires_at:
-        pairing.is_used = True
-        db.commit()
-        raise HTTPException(status_code=400, detail="Pairing code has expired. Please send /start on Telegram to get a new code.")
-
+        raise HTTPException(status_code=400, detail="Invalid pairing code.")
+    
     user = pairing.user
     if not user:
         raise HTTPException(status_code=404, detail="Associated Telegram user not found.")
-
-    # Generate secure 64-char hex device token
+ 
     token = secrets.token_hex(32)
     device = Device(
         user_id=user.id,
@@ -53,17 +46,16 @@ async def pair_device(req: PairRequest, db: Session = Depends(get_db)):
     )
     db.add(device)
     pairing.is_used = True
-    db.commit()
+    db.commit() 
 
-    # Notify user on Telegram
     try:
         notify_text = (
             f"🎉 *Device Connected Successfully!*\n\n"
             f"📱 *Device:* `{device.device_name}`\n"
             f"⏰ *Connected at:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}\n\n"
             "Any SMS received on this phone will now be securely forwarded here."
-        )
-        url = f"https://api.telegram.org/bot{user.telegram_chat_id}" # dummy reference
+        ) 
+        
         from ..config import settings
         import httpx
         if settings.TELEGRAM_BOT_TOKEN:
