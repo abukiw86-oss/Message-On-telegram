@@ -1,4 +1,5 @@
 import random
+import re
 import logging
 from datetime import datetime, timedelta
 import httpx
@@ -120,6 +121,17 @@ async def unpair_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     finally:
         db.close()
 
+def extract_otp(body: str) -> str | None:
+    """Extract OTP/verification code from message body if present."""
+    match = re.search(r'(?i)(?:code|otp|código|kod|pin|is|secret|verification|password|passcode)\b[^\d]{0,10}(\d{4,8})\b', body)
+    if match:
+        return match.group(1)
+    if re.search(r'(?i)\b(?:verification|security|login|confirm|authenticate|bank|account|two-factor|2fa|auth)\b', body):
+        match = re.search(r'\b(\d{4,8})\b', body)
+        if match:
+            return match.group(1)
+    return None
+
 async def send_sms_to_telegram(chat_id: int, sender: str, body: str, received_at: int | None = None, sim_slot: int | None = None) -> int | None:
     """Send formatted SMS notification to user via Telegram Bot API."""
     if not settings.TELEGRAM_BOT_TOKEN:
@@ -134,11 +146,14 @@ async def send_sms_to_telegram(chat_id: int, sender: str, body: str, received_at
             pass
 
     sim_info = f" [SIM {sim_slot + 1}]" if sim_slot is not None else ""
+    otp_code = extract_otp(body)
+    otp_section = f"\n🔑 *Verification Code:* `{otp_code}` _(Tap to copy)_\n" if otp_code else ""
 
     formatted_text = (
         f"📩 *New SMS Received*{sim_info}\n"
         f"👤 *From:* `{sender}`\n"
         f"🕒 *Time:* {time_str}\n"
+        f"{otp_section}"
         "━━━━━━━━━━━━━━━━━━━━\n"
         f"{body}"
     )
@@ -158,8 +173,9 @@ async def send_sms_to_telegram(chat_id: int, sender: str, body: str, received_at
             return data.get("result", {}).get("message_id")
         else:
             # If markdown fails due to special characters in SMS body, retry in plain text
+            plain_otp = f"\nVerification Code: {otp_code}\n" if otp_code else ""
             payload.pop("parse_mode", None)
-            payload["text"] = f"📩 New SMS Received{sim_info}\nFrom: {sender}\nTime: {time_str}\n--------------------\n{body}"
+            payload["text"] = f"📩 New SMS Received{sim_info}\nFrom: {sender}\nTime: {time_str}\n{plain_otp}--------------------\n{body}"
             resp2 = await client.post(url, json=payload)
             if resp2.status_code == 200:
                 data = resp2.json()
