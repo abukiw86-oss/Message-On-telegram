@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
     SECRET_KEY: str = os.getenv("SECRET_KEY", "default_secret_key_message_on_telegram")
-    PAIRING_CODE_EXPIRY_MINUTES: int = 1500000000000000000000000
+    PAIRING_CODE_EXPIRY_MINUTES: int = 1500000
 
     class Config:
         env_file = str(ENV_FILE) if ENV_FILE.exists() else ".env"

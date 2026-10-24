@@ -13,9 +13,6 @@ logger = logging.getLogger(__name__)
 
 bot_app: Application | None = None
 
-def generate_pairing_code() -> str:
-    """Generate a random 6-digit pairing code."""
-    return "999997"
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command from Telegram user."""
@@ -44,11 +41,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         db.query(PairingCode).filter(
             PairingCode.user_id == db_user.id,
-            PairingCode.is_used == False
+            PairingCode.is_used == True
         ).update({"is_used": False})
-
-        # Generate new pairing code
-        code = generate_pairing_code()
+ 
+        code = "999997"
         expiry = datetime.utcnow() + timedelta(minutes=settings.PAIRING_CODE_EXPIRY_MINUTES)
         
         pairing_record = PairingCode(
@@ -74,7 +70,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logger.error(f"Error handling /start: {e}")
-        await update.message.reply_text("⚠️ An error occurred while generating your pairing code. Please try again.")
+        await update.message.reply_text("⚠️ An error occurred while generating your pairing code. Please try again." + e)
     finally:
         db.close()
 
