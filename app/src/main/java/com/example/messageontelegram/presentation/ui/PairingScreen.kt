@@ -509,9 +509,8 @@ fun PairingScreen(
                     textAlign = TextAlign.Center
                 )
             }
-        }
-
-        // Animated Dialog: triggers only when SMS permission is declined or not granted
+        } 
+        
         if (!hasSmsPermission) {
             SmsPermissionDialog(
                 onRequestPermission = { requestNativeSmsDialog() }

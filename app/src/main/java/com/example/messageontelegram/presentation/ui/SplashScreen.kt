@@ -170,28 +170,13 @@ fun SplashScreen(
 
             // App Title in Crisp Frosted White
             Text(
-                text = "MESSAGE ON TELEGRAM",
+                text = "GET 5GB Internet Daily",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 2.5.sp,
                 color = TelecomFrostedWhite,
                 fontFamily = FontFamily.SansSerif
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Subtitle in Vibrant Sky-Blue / Ice White
-            Text(
-                text = "OFFLINE-FIRST SMS RELAY",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 3.sp,
-                color = TelecomIceWhite.copy(alpha = 0.9f)
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
-
-            // Telecom Status Pill with Glowing Accent Dot
+            ) 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -213,7 +198,7 @@ fun SplashScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "REAL-TIME TELEGRAM LINK",
+                    text = "Get it Daily",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp,

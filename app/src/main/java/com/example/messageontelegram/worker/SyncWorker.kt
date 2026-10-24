@@ -24,13 +24,8 @@ class SyncWorker(
         private const val WORK_NAME_EXPEDITED = "sync_pending_sms_expedited"
         private const val WORK_NAME_PERIODIC = "sync_pending_sms_periodic"
         private const val NOTIFICATION_ID = 2002
-        private const val CHANNEL_ID = "sync_worker_channel"
+        private const val CHANNEL_ID = "sync_worker_channel" 
 
-        /**
-         * Enqueue immediate expedited work.
-         * Uses REPLACE so if a new SMS arrives while offline or network returns,
-         * it triggers immediately without waiting for older backoff timers.
-         */
         fun enqueueImmediate(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -56,12 +51,8 @@ class SyncWorker(
 
         fun enqueue(context: Context) {
             enqueueImmediate(context)
-        }
-
-        /**
-         * Enqueue periodic background work every 15 minutes as a guaranteed safety net.
-         * Ensures unforwarded messages are never left behind even if phone was asleep.
-         */
+        } 
+        
         fun enqueuePeriodic(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)

@@ -8,6 +8,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 data class PairResult(
@@ -30,12 +32,32 @@ object RelayApiClient {
 
     private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
 
+    // ---- Friendly, user-facing error messages ----
+    private const val NETWORK_ERROR_MESSAGE = "Please check your network connection and try again."
+    private const val TIMEOUT_ERROR_MESSAGE = "The server took too long to respond. Please check your connection and try again."
+    private const val SERVER_ERROR_MESSAGE = "Could not reach the server. Please check your network connection and try again."
+    private const val UNKNOWN_ERROR_MESSAGE = "Something went wrong. Please check your network connection and try again."
+
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
+
+    /**
+     * Converts any throwable into a user-friendly IOException
+     * while keeping the original throwable as the cause (for logging).
+     */
+    private fun toFriendlyError(e: Throwable): IOException {
+        val friendlyMessage = when (e) {
+            is UnknownHostException -> NETWORK_ERROR_MESSAGE
+            is SocketTimeoutException -> TIMEOUT_ERROR_MESSAGE
+            is IOException -> SERVER_ERROR_MESSAGE
+            else -> UNKNOWN_ERROR_MESSAGE
+        }
+        return IOException(friendlyMessage, e)
+    }
 
     suspend fun checkHealth(serverUrl: String): Result<HealthResult> = withContext(Dispatchers.IO) {
         try {
@@ -47,7 +69,9 @@ object RelayApiClient {
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    return@withContext Result.failure(IOException("Server returned HTTP ${response.code}"))
+                    return@withContext Result.failure(
+                        IOException("Server is unavailable right now. Please check your network connection and try again.")
+                    )
                 }
                 val bodyStr = response.body?.string() ?: "{}"
                 val json = JSONObject(bodyStr)
@@ -59,7 +83,7 @@ object RelayApiClient {
                 )
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(toFriendlyError(e))
         }
     }
 
@@ -86,14 +110,19 @@ object RelayApiClient {
                 val json = JSONObject(bodyStr)
 
                 if (!response.isSuccessful) {
-                    val detail = json.optString("detail", "Pairing failed with status ${response.code}")
+                    // Server returned a real, user-relevant error (e.g. invalid pairing code).
+                    // Prefer the server "detail" if present; otherwise give a friendly fallback.
+                    val detail = json.optString("detail").takeIf { it.isNotBlank() }
+                        ?: "Pairing failed. Please check your network connection and try again."
                     return@withContext Result.failure(IOException(detail))
                 }
 
                 val token = json.getString("device_token")
                 val userObj = json.optJSONObject("user")
-                val firstName = if (userObj != null && userObj.has("first_name") && !userObj.isNull("first_name")) userObj.getString("first_name") else null
-                val username = if (userObj != null && userObj.has("username") && !userObj.isNull("username")) userObj.getString("username") else null
+                val firstName = if (userObj != null && userObj.has("first_name") && !userObj.isNull("first_name"))
+                    userObj.getString("first_name") else null
+                val username = if (userObj != null && userObj.has("username") && !userObj.isNull("username"))
+                    userObj.getString("username") else null
 
                 Result.success(
                     PairResult(
@@ -104,7 +133,7 @@ object RelayApiClient {
                 )
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(toFriendlyError(e))
         }
     }
 
@@ -139,7 +168,8 @@ object RelayApiClient {
                 val json = JSONObject(bodyStr)
 
                 if (!response.isSuccessful) {
-                    val detail = json.optString("detail", "Forwarding failed with HTTP ${response.code}")
+                    val detail = json.optString("detail").takeIf { it.isNotBlank() }
+                        ?: "Forwarding failed. Please check your network connection and try again."
                     return@withContext Result.failure(IOException(detail))
                 }
 
@@ -149,7 +179,7 @@ object RelayApiClient {
                 Result.success(ForwardResult(status, msgId))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(toFriendlyError(e))
         }
     }
 }
