@@ -19,7 +19,7 @@
         android:name=".SmsRelayApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Message on Telegram"
+        android:label="Freenet"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MessageOnTelegram">
