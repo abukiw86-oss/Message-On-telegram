@@ -1,11 +1,17 @@
 package com.example.messageontelegram.presentation.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +25,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.MarkEmailRead
+import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,21 +49,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
 import com.example.messageontelegram.core.network.RelayApiClient
 import com.example.messageontelegram.core.preferences.PreferencesManager
 import kotlinx.coroutines.launch
 
-// --- PALETTE EXTRACTED FROM THE IMAGE ---
+// --- PALETTE EXTRACTED FROM THE IMAGE ---[cite: 1]
 private val TealDark = Color(0xFF004D61)
 private val TealMedium = Color(0xFF027A94)
 private val CyanAccent = Color(0xFF00C0DE)
 private val IceBlue = Color(0xFFD6F6FF)
 private val IceWhite = Color(0xFFF2FBFF)
-private val GlassCardBg = Color(0xFF01556B).copy(alpha = 0.55f)
+private val DarkBackground = Color(0xFF002936)
+private val GlassCardBg = Color(0xFF01556B).copy(alpha = 0.65f)
 private val CardBorderColor = Color(0xFF3CD5F5).copy(alpha = 0.35f)
 
 @Composable
 fun PairingScreen(
+    hasSmsPermission: Boolean,
+    onPermissionGranted: () -> Unit,
     onPairingSuccess: () -> Unit
 ) {
     val context = LocalContext.current
@@ -72,7 +86,41 @@ fun PairingScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val focusRequester = remember { FocusRequester() }
 
-    // Floating pulsing animation for the hero badge
+    // System Permission Launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.RECEIVE_SMS] == true ||
+                      permissions[Manifest.permission.READ_SMS] == true
+        if (granted) {
+            onPermissionGranted()
+        }
+    }
+
+    fun requestSmsOrOpenSettings() {
+        val activity = context as? Activity
+        val shouldShowRationale = activity?.let {
+            ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.RECEIVE_SMS)
+        } ?: false
+
+        if (!hasSmsPermission && !shouldShowRationale) {
+            // Direct system prompt
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.READ_SMS
+                )
+            )
+        } else {
+            // If declined previously or permanently, open app settings directly
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+            }
+            context.startActivity(intent)
+        }
+    }
+
+    // Hero Badge floating pulse
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.96f,
@@ -126,7 +174,7 @@ fun PairingScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(TealMedium, TealDark, Color(0xFF002936))
+                    colors = listOf(TealMedium, TealDark, DarkBackground)
                 )
             )
     ) {
@@ -144,8 +192,6 @@ fun PairingScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-            val contentWidth = if (maxWidth > 600.dp) 480.dp else Modifier.fillMaxWidth()
-
             Column(
                 modifier = Modifier
                     .then(if (maxWidth > 600.dp) Modifier.width(480.dp) else Modifier.fillMaxWidth())
@@ -156,7 +202,7 @@ fun PairingScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Hero Logo Badge (Pulsing 3D/Glow look)
+                // Hero Logo Badge[cite: 1]
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -279,12 +325,12 @@ fun PairingScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Hidden real textfield + Styled 6-box visual representation
                         BasicTextField(
                             value = pairingCode,
                             onValueChange = {
                                 if (it.length <= 6) pairingCode = it.filter { char -> char.isDigit() }
                             },
+                            enabled = hasSmsPermission,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.NumberPassword,
                                 imeAction = ImeAction.Done
@@ -372,8 +418,8 @@ fun PairingScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Action Button (Image-matching vibrant gradient)
-                val isButtonEnabled = !isLoading && pairingCode.length == 6
+                // Submit Action Button[cite: 1]
+                val isButtonEnabled = !isLoading && pairingCode.length == 6 && hasSmsPermission
                 Button(
                     onClick = { submitPairing() },
                     enabled = isButtonEnabled,
@@ -433,7 +479,6 @@ fun PairingScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Bottom Tagline from Promo Banner
                 Text(
                     text = "Your connection is our priority.",
                     fontSize = 12.sp,
@@ -442,5 +487,179 @@ fun PairingScreen(
                 )
             }
         }
+
+        // Animated Dialog: triggers only when SMS permission is declined or not granted
+        if (!hasSmsPermission) {
+            SmsPermissionDialog(
+                onRequestPermission = { requestSmsOrOpenSettings() }
+            )
+        }
+    }
+}
+
+/**
+ * Animated High-Conversion SMS Permission Explanation Dialog
+ */
+@Composable
+fun SmsPermissionDialog(
+    onRequestPermission: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "smsPulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1300, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "smsDialogPulse"
+    )
+
+    Dialog(
+        onDismissRequest = { /* Must grant permission to proceed */ },
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.5.dp, CardBorderColor, RoundedCornerShape(24.dp))
+                .shadow(24.dp, spotColor = CyanAccent, shape = RoundedCornerShape(24.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(TealMedium.copy(alpha = 0.95f), DarkBackground.copy(alpha = 0.98f))
+                        )
+                    )
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Pulsing Message/OTP Shield Icon[cite: 1]
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .scale(pulseScale)
+                        .size(76.dp)
+                        .background(
+                            Brush.radialGradient(listOf(IceBlue, CyanAccent, TealMedium)),
+                            CircleShape
+                        )
+                        .border(2.dp, IceWhite.copy(alpha = 0.8f), CircleShape)
+                        .shadow(12.dp, spotColor = CyanAccent, shape = CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MarkEmailRead,
+                        contentDescription = "SMS Permission",
+                        tint = TealDark,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "SMS Permission Required",
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = IceWhite,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Freenet requires SMS access to detect carrier verification codes automatically and establish the secure data bridge.",
+                    fontSize = 13.sp,
+                    color = IceBlue.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Explanatory bullet points
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF003847).copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                        .padding(14.dp)
+                ) {
+                    PermissionReasonRow(text = "Automated OTP verification without manual input")
+                    PermissionReasonRow(text = "Validates the connection bridge instantaneously")
+                    PermissionReasonRow(text = "Zero storage of private personal text messages")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Action Button[cite: 1]
+                Button(
+                    onClick = onRequestPermission,
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .shadow(12.dp, spotColor = CyanAccent, shape = RoundedCornerShape(14.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.horizontalGradient(listOf(CyanAccent, IceBlue))),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                tint = TealDark
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Allow SMS Permission",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TealDark
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Click to open prompt or allow in app settings.",
+                    fontSize = 11.sp,
+                    color = IceBlue.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionReasonRow(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.CheckCircle,
+            contentDescription = null,
+            tint = CyanAccent,
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = IceWhite.copy(alpha = 0.9f)
+        )
     }
 }
