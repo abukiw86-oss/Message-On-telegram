@@ -33,7 +33,20 @@ dependencies {
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+
+    // Networking
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Background workers & Offline Queue
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Persistent storage
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
