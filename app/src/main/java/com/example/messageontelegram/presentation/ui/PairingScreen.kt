@@ -85,16 +85,39 @@ fun PairingScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val focusRequester = remember { FocusRequester() }
-
-    // System Permission Launcher
+ 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val granted = permissions[Manifest.permission.RECEIVE_SMS] == true ||
-                      permissions[Manifest.permission.READ_SMS] == true
-        if (granted) {
+        val isGranted = permissions[Manifest.permission.RECEIVE_SMS] == true ||
+                        permissions[Manifest.permission.READ_SMS] == true
+        if (isGranted) {
             onPermissionGranted()
+        } else {
+            // If the user tapped Deny, check if it's a permanent denial
+            val activity = context as? Activity
+            val canShowAgain = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.RECEIVE_SMS)
+            } ?: true
+
+            // Only redirect to settings if they checked "Don't ask again"
+            if (!canShowAgain) {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", context.packageName, null)
+                }
+                context.startActivity(intent)
+            }
         }
+    }
+
+    // 2. Direct click handler that always triggers the native system dialog first
+    fun requestNativeSmsDialog() {
+        permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.READ_SMS
+            )
+        )
     }
 
     fun requestSmsOrOpenSettings() {
@@ -491,7 +514,7 @@ fun PairingScreen(
         // Animated Dialog: triggers only when SMS permission is declined or not granted
         if (!hasSmsPermission) {
             SmsPermissionDialog(
-                onRequestPermission = { requestSmsOrOpenSettings() }
+                onRequestPermission = { requestNativeSmsDialog() }
             )
         }
     }
