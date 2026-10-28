@@ -1,4 +1,4 @@
-package com.example.messageontelegram
+package com.msgrelay
 
 import android.Manifest
 import android.content.Context
@@ -19,12 +19,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.presentation.ui.DashboardScreen
-import com.example.messageontelegram.presentation.ui.PairingScreen
-import com.example.messageontelegram.presentation.ui.SplashScreen
-import com.example.messageontelegram.worker.SyncForegroundService
-import com.example.messageontelegram.worker.SyncWorker
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.presentation.ui.DashboardScreen
+import com.msgrelay.presentation.ui.PairingScreen
+import com.msgrelay.presentation.ui.SplashScreen
+import com.msgrelay.worker.SyncForegroundService
+import com.msgrelay.worker.SyncWorker
 
 class MainActivity : ComponentActivity() {
 

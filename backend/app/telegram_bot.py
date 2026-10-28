@@ -70,7 +70,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logger.error(f"Error handling /start: {e}")
-        await update.message.reply_text("⚠️ An error occurred while generating your pairing code. Please try again." + e)
+        await update.message.reply_text(f"⚠️ An error occurred while generating your pairing code. Please try again: {e}")
     finally:
         db.close()
 

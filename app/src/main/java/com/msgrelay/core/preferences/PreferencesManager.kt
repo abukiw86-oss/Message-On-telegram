@@ -1,4 +1,4 @@
-package com.example.messageontelegram.core.preferences
+package com.msgrelay.core.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -19,8 +19,8 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_FORWARDING_ENABLED = "forwarding_enabled"
         private const val KEY_BOT_USERNAME = "bot_username"
 
-        const val DEFAULT_SERVER_URL = "https://abubeker.alwaysdata.net"
-        const val DEFAULT_BOT_USERNAME = "dsjfbsbfkbot"
+        const val DEFAULT_SERVER_URL = "https://msgrelay.alwaysdata.net"
+        const val DEFAULT_BOT_USERNAME = "msgrelay_private_bot"
 
         @Volatile
         private var INSTANCE: PreferencesManager? = null

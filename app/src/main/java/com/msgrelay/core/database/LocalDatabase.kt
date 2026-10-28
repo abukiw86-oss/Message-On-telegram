@@ -1,4 +1,4 @@
-package com.example.messageontelegram.core.database
+package com.msgrelay.core.database
 
 import android.content.ContentValues
 import android.content.Context

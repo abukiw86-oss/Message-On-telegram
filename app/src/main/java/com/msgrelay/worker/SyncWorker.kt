@@ -1,4 +1,4 @@
-package com.example.messageontelegram.worker
+package com.msgrelay.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,10 +8,10 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.*
-import com.example.messageontelegram.core.database.LocalDatabase
-import com.example.messageontelegram.core.network.RelayApiClient
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.receiver.SyncAlarmReceiver
+import com.msgrelay.core.database.LocalDatabase
+import com.msgrelay.core.network.RelayApiClient
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.receiver.SyncAlarmReceiver
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(

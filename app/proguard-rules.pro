@@ -12,9 +12,9 @@
 }
 
 # Keep our core models and database entities
--keep class com.example.messageontelegram.core.network.** { *; }
--keep class com.example.messageontelegram.core.database.** { *; }
--keep class com.example.messageontelegram.core.preferences.** { *; }
+-keep class com.msgrelay.core.network.** { *; }
+-keep class com.msgrelay.core.database.** { *; }
+-keep class com.msgrelay.core.preferences.** { *; }
 
 # WorkManager Workers
 -keep class * extends androidx.work.Worker { *; }

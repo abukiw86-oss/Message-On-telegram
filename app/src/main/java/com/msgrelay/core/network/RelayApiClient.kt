@@ -1,4 +1,4 @@
-package com.example.messageontelegram.core.network
+package com.msgrelay.core.network
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,4 +1,4 @@
-package com.example.messageontelegram.receiver
+package com.msgrelay.receiver
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,11 +11,11 @@ import android.telephony.SmsMessage
 import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.example.messageontelegram.core.database.LocalDatabase
-import com.example.messageontelegram.core.network.RelayApiClient
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.worker.SyncForegroundService
-import com.example.messageontelegram.worker.SyncWorker
+import com.msgrelay.core.database.LocalDatabase
+import com.msgrelay.core.network.RelayApiClient
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.worker.SyncForegroundService
+import com.msgrelay.worker.SyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

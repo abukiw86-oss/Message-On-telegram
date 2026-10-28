@@ -1,4 +1,4 @@
-package com.example.messageontelegram
+package com.msgrelay
 
 import android.app.Application
 import android.content.Context
@@ -8,10 +8,10 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.util.Log
-import com.example.messageontelegram.core.database.LocalDatabase
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.worker.SyncForegroundService
-import com.example.messageontelegram.worker.SyncWorker
+import com.msgrelay.core.database.LocalDatabase
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.worker.SyncForegroundService
+import com.msgrelay.worker.SyncWorker
 
 class SmsRelayApp : Application() {
 

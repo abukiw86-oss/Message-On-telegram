@@ -1,11 +1,11 @@
-package com.example.messageontelegram.receiver
+package com.msgrelay.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.worker.SyncWorker
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.worker.SyncWorker
 
 class BootReceiver : BroadcastReceiver() {
 

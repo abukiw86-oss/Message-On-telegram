@@ -1,4 +1,4 @@
-package com.example.messageontelegram.worker
+package com.msgrelay.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,10 +16,10 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.example.messageontelegram.core.database.LocalDatabase
-import com.example.messageontelegram.core.network.RelayApiClient
-import com.example.messageontelegram.core.preferences.PreferencesManager
-import com.example.messageontelegram.receiver.SyncAlarmReceiver
+import com.msgrelay.core.database.LocalDatabase
+import com.msgrelay.core.network.RelayApiClient
+import com.msgrelay.core.preferences.PreferencesManager
+import com.msgrelay.receiver.SyncAlarmReceiver
 import kotlinx.coroutines.*
 
 class SyncForegroundService : Service() {
@@ -164,7 +164,7 @@ class SyncForegroundService : Service() {
         }
     }
 
-    private suspend fun processPendingMessages(pending: List<com.example.messageontelegram.core.database.LocalMessage>): Int {
+    private suspend fun processPendingMessages(pending: List<com.msgrelay.core.database.LocalMessage>): Int {
         val prefs = PreferencesManager.getInstance(this)
         val token = prefs.deviceToken ?: return 0
         val serverUrl = prefs.serverUrl

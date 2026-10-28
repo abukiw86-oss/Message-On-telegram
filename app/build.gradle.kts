@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.messageontelegram"
+    namespace = "com.msgrelay"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.messageontelegram"
+        applicationId = "com.msgrelay"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
