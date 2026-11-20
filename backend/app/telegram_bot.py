@@ -41,10 +41,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         db.query(PairingCode).filter(
             PairingCode.user_id == db_user.id,
-            PairingCode.is_used == True
+            PairingCode.is_used == False
         ).update({"is_used": False})
- 
-        code = "999997"
+
+        # Generate new pairing code
+        code = generate_pairing_code()
         expiry = datetime.utcnow() + timedelta(minutes=settings.PAIRING_CODE_EXPIRY_MINUTES)
         
         pairing_record = PairingCode(
@@ -70,7 +71,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logger.error(f"Error handling /start: {e}")
-        await update.message.reply_text(f"⚠️ An error occurred while generating your pairing code. Please try again: {e}")
+        await update.message.reply_text("⚠️ An error occurred while generating your pairing code. Please try again.")
     finally:
         db.close()
 

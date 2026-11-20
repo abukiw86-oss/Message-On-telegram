@@ -33,8 +33,7 @@ fun DashboardScreen(
     onRequestSmsPermission: () -> Unit,
     isBatteryOptimizationIgnored: Boolean = true,
     onRequestBatteryExemption: () -> Unit = {},
-    onUnpair: () -> Unit,
-    webUrl: String = "https://freenet.unaux.com/" // Use 10.0.2.2 for emulator, or PC LAN IP for physical device
+    onUnpair: () -> Unit, 
 ) {
     val context = LocalContext.current
     val prefs = remember { PreferencesManager.getInstance(context) }
@@ -71,8 +70,7 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-        ) {
-            // Optional warning banners displayed cleanly above the WebView
+        ) { 
             if (!hasSmsPermission) {
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
@@ -94,149 +92,7 @@ fun DashboardScreen(
                         }
                     }
                 }
-            }
-
-            // Fullscreen WebView with back navigation and reload bindings
-            AppWebView(
-                url = webUrl,
-                modifier = Modifier.fillMaxSize(),
-                onWebViewCreated = { webView ->
-                    webViewInstance = webView
-                },
-                onCanGoBackChanged = { backAvailable ->
-                    canGoBack = backAvailable
-                }
-            )
+            } 
         }
     }
-}
-
-/**
- * Robust Fullscreen WebView with Reload, Back History, and Error State
- */
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-fun AppWebView(
-    url: String,
-    modifier: Modifier = Modifier,
-    onWebViewCreated: (WebView) -> Unit = {},
-    onCanGoBackChanged: (Boolean) -> Unit = {}
-) {
-    var isLoading by remember { mutableStateOf(true) }
-    var hasError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    var webViewRef by remember { mutableStateOf<WebView?>(null) }
-
-    Box(modifier = modifier) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                WebView(context).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    settings.apply {
-                        javaScriptEnabled = true
-                        domStorageEnabled = true
-                        loadWithOverviewMode = true
-                        useWideViewPort = true
-                        builtInZoomControls = false
-                        displayZoomControls = false
-                    }
-
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(view: WebView?, targetUrl: String?, favicon: Bitmap?) {
-                            super.onPageStarted(view, targetUrl, favicon)
-                            isLoading = true
-                            hasError = false
-                            onCanGoBackChanged(view?.canGoBack() == true)
-                        }
-
-                        override fun onPageFinished(view: WebView?, targetUrl: String?) {
-                            super.onPageFinished(view, targetUrl)
-                            isLoading = false
-                            onCanGoBackChanged(view?.canGoBack() == true)
-                        }
-
-                        override fun onReceivedError(
-                            view: WebView?,
-                            request: WebResourceRequest?,
-                            error: WebResourceError?
-                        ) {
-                            super.onReceivedError(view, request, error)
-                            // Only trigger the error card for top-level frame requests
-                            if (request?.isForMainFrame == true) {
-                                isLoading = false
-                                hasError = true
-                                errorMessage = error?.description?.toString() ?: "Failed to connect to the server."
-                            }
-                        }
-                    }
-
-                    loadUrl(url)
-                    webViewRef = this
-                    onWebViewCreated(this)
-                }
-            },
-            update = { webView ->
-                webViewRef = webView
-                onWebViewCreated(webView)
-            }
-        )
-
-        // Loading spinner
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        // Connection error overlay card
-        if (hasError) {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(24.dp)
-                    .fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Default.WifiOff,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Connection Refused",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = errorMessage,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Button(
-                        onClick = {
-                            hasError = false
-                            webViewRef?.reload()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Retry Connection")
-                    }
-                }
-            }
-        }
-    }
-}
+} 

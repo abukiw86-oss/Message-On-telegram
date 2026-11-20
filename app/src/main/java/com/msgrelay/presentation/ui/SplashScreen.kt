@@ -1,4 +1,4 @@
-package com.msgrelay.presentation.ui
+package com.example.messageontelegram.presentation.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.msgrelay.R
+import com.example.messageontelegram.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -170,13 +170,28 @@ fun SplashScreen(
 
             // App Title in Crisp Frosted White
             Text(
-                text = "GET 5GB Internet Daily",
+                text = "MESSAGE ON TELEGRAM",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 2.5.sp,
                 color = TelecomFrostedWhite,
                 fontFamily = FontFamily.SansSerif
-            ) 
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Subtitle in Vibrant Sky-Blue / Ice White
+            Text(
+                text = "OFFLINE-FIRST SMS RELAY",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 3.sp,
+                color = TelecomIceWhite.copy(alpha = 0.9f)
+            )
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // Telecom Status Pill with Glowing Accent Dot
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -198,7 +213,7 @@ fun SplashScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Get it Daily",
+                    text = "REAL-TIME TELEGRAM LINK",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp,
