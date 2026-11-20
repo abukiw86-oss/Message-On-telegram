@@ -124,7 +124,7 @@ fun PairingScreen(
             )
 
             Text(
-                text = "Get ",
+                text = "Forward SMS messages to Telegram securely in real-time",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

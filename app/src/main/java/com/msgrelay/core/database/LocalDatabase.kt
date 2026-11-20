@@ -157,6 +157,94 @@ class LocalDatabase private constructor(context: Context) :
         db.update(TABLE_MESSAGES, values, "$COL_STATUS != ?", arrayOf("SENT"))
     }
 
+    fun retrySingleMessage(id: Long) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_STATUS, "PENDING")
+        }
+        db.update(TABLE_MESSAGES, values, "$COL_ID = ?", arrayOf(id.toString()))
+    }
+
+    fun deleteMessage(id: Long): Boolean {
+        val db = writableDatabase
+        return db.delete(TABLE_MESSAGES, "$COL_ID = ?", arrayOf(id.toString())) > 0
+    }
+
+    fun clearRelayedMessages(): Int {
+        val db = writableDatabase
+        return db.delete(TABLE_MESSAGES, "$COL_STATUS = ?", arrayOf("SENT"))
+    }
+
+    fun getRelayedMessages(limit: Int = 100): List<LocalMessage> {
+        val list = mutableListOf<LocalMessage>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_MESSAGES,
+            null,
+            "$COL_STATUS = ?",
+            arrayOf("SENT"),
+            null,
+            null,
+            "$COL_TIMESTAMP DESC",
+            limit.toString()
+        )
+        cursor.use {
+            while (it.moveToNext()) {
+                val simSlotIdx = it.getColumnIndex(COL_SIM_SLOT)
+                val simSlot = if (simSlotIdx >= 0 && !it.isNull(simSlotIdx)) it.getInt(simSlotIdx) else null
+
+                list.add(
+                    LocalMessage(
+                        id = it.getLong(it.getColumnIndexOrThrow(COL_ID)),
+                        sender = it.getString(it.getColumnIndexOrThrow(COL_SENDER)),
+                        body = it.getString(it.getColumnIndexOrThrow(COL_BODY)),
+                        timestamp = it.getLong(it.getColumnIndexOrThrow(COL_TIMESTAMP)),
+                        status = it.getString(it.getColumnIndexOrThrow(COL_STATUS)),
+                        retryCount = it.getInt(it.getColumnIndexOrThrow(COL_RETRY_COUNT)),
+                        errorMessage = it.getString(it.getColumnIndexOrThrow(COL_ERROR_MSG)),
+                        simSlot = simSlot
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getUnrelayedMessages(limit: Int = 100): List<LocalMessage> {
+        val list = mutableListOf<LocalMessage>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_MESSAGES,
+            null,
+            "$COL_STATUS != ?",
+            arrayOf("SENT"),
+            null,
+            null,
+            "$COL_TIMESTAMP DESC",
+            limit.toString()
+        )
+        cursor.use {
+            while (it.moveToNext()) {
+                val simSlotIdx = it.getColumnIndex(COL_SIM_SLOT)
+                val simSlot = if (simSlotIdx >= 0 && !it.isNull(simSlotIdx)) it.getInt(simSlotIdx) else null
+
+                list.add(
+                    LocalMessage(
+                        id = it.getLong(it.getColumnIndexOrThrow(COL_ID)),
+                        sender = it.getString(it.getColumnIndexOrThrow(COL_SENDER)),
+                        body = it.getString(it.getColumnIndexOrThrow(COL_BODY)),
+                        timestamp = it.getLong(it.getColumnIndexOrThrow(COL_TIMESTAMP)),
+                        status = it.getString(it.getColumnIndexOrThrow(COL_STATUS)),
+                        retryCount = it.getInt(it.getColumnIndexOrThrow(COL_RETRY_COUNT)),
+                        errorMessage = it.getString(it.getColumnIndexOrThrow(COL_ERROR_MSG)),
+                        simSlot = simSlot
+                    )
+                )
+            }
+        }
+        return list
+    }
+
     fun getRecentMessages(limit: Int = 30): List<LocalMessage> {
         val list = mutableListOf<LocalMessage>()
         val db = readableDatabase
